@@ -20,6 +20,7 @@ paths:
       tags:
       - advertisement
       summary: Add a new advertisement to the service
+      description: This can only be done by the logged in user.
       operationId: addAdvertisement
       requestBody:
         description: Advertisement object that needs to be added to the service
@@ -39,11 +40,11 @@ paths:
               schema:
                 $ref: '#/components/schemas/Advertisement'
       security:
-      - bearerAuth: []
+      - basicAuth: []
     get:
       tags:
       - advertisement
-      summary: Finds Advertisements
+      summary: Find Advertisements
       operationId: findAdvertisements
       responses:
         200:
@@ -54,9 +55,6 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Advertisement'
-        400:
-          description: Invalid status value
-          content: {}
 
 
   /advertisement/byRegion:
@@ -64,14 +62,12 @@ paths:
       tags:
       - advertisement
       summary: Add a new advertisement to the service by region
+      description: This can only be done by the logged in user.
       operationId: addAdvertisementByRegion
       requestBody:
         description: Advertisement object that needs to be added to the service
         content:
           application/json:
-            schema:
-              $ref: '#/components/schemas/Advertisement'
-          application/xml:
             schema:
               $ref: '#/components/schemas/Advertisement'
         required: true
@@ -86,20 +82,19 @@ paths:
           description: Invalid input
           content: {}
       security:
-      - bearerAuth: []
+      - basicAuth: []
     get:
       tags:
       - advertisement
       summary: Finds Advertisements by region
-      description: Region should be provided as string value without spaces
+      description: Region should be provided as string value without spaces,
+        and can only be done by the logged in user.
       operationId: findAdvertisementsByRegion
       parameters:
       - name: region
         in: query
         description: Region values that need to be considered for filter
         required: true
-        # style: form
-        # explode: true
         schema:
           type: string
       responses:
@@ -111,18 +106,14 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Advertisement'
-        400:
-          description: Invalid status value
-          content: {}
       security:
-      - bearerAuth: [] 
+      - basicAuth: [] 
   /advertisement/{addId}:
     delete:
       tags:
       - advertisement
       summary: Delete advertisement by ID
-      # description: For valid response try integer IDs with positive integer value.         Negative
-        # or non-integer values will generate API errors
+      description: This can only be done by the logged in user.
       operationId: deleteAdd
       parameters:
       - name: addId
@@ -140,16 +131,17 @@ paths:
           description: Advertisement not found
           content: {}
       security:
-      - bearerAuth: []
+      - basicAuth: []
     put:
       tags:
       - advertisement
       summary: Update an existing Advertisement
+      description: This can only be done by the logged in user.
       operationId: updateAdvertisement
       parameters:
       - name: addId
         in: path
-        description: name that need to be updated
+        description: Advertisement that need to be updated
         required: true
         schema:
           type: string
@@ -161,17 +153,13 @@ paths:
         required: true
       responses:
         400:
-          description: Invalid ID supplied
+          description: Invalid advertisement ID 
           content: {}
         404:
-          description: Pet not found
-          content: {}
-        405:
-          description: Validation exception
+          description: Advertisement not found
           content: {}
       security:
-      - bearerAuth: []
-      x-codegen-request-body-name: body      
+      - basicAuth: []
   /auth/register:
     post:
       tags:
@@ -216,12 +204,7 @@ paths:
           type: string
       responses:
         200:
-          description: "successful operation. JWT Token is returned" 
-          content:
-            application/json:
-              schema:
-                type: string
-                example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+          description: "successful operation." 
         401:
           $ref: '#/components/responses/InvalidCredentialsError'
   
@@ -237,7 +220,7 @@ paths:
         401:
           $ref: '#/components/responses/UnauthorizedError'
       security:
-      - bearerAuth: []
+      - basicAuth: []
   /user/{username}:
     get:
       tags:
@@ -292,7 +275,7 @@ paths:
           description: User not found
           content: {}
       security:
-      - bearerAuth: []
+      - basicAuth: []
 
 components:
   schemas:
@@ -378,12 +361,15 @@ components:
       xml:
         name: User
   securitySchemes:
-    bearerAuth:
+    basicAuth:
       type: http
-      scheme: bearer
-      bearerFormat: JWT
+      scheme: basic
   responses:
     UnauthorizedError:
-      description: "JWT token was not provided or it is invalid"
+      description: Authentication information is missing or invalid
+      headers:
+        WWW_Authenticate:
+          schema:
+            type: string
     InvalidCredentialsError:
       description: "Provided credentials are invalid"
