@@ -106,6 +106,9 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Advertisement'
+        405:
+          description: Invalid input
+          content: {}
       security:
       - basicAuth: [] 
   /advertisement/{addId}:
@@ -171,7 +174,7 @@ paths:
         content:
           'application/json':
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: '#/components/schemas/UserToCreate'
         required: true
       responses:
         200:
@@ -179,7 +182,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/UserToCreate'
         400:
           description: "User with such username already exists"
       
@@ -280,6 +283,13 @@ paths:
 components:
   schemas:
     Advertisement:
+      required:
+      - id
+      - userId
+      - category
+      - text
+      - dateOfPublishing
+      - status
       type: object
       properties:
         id:
@@ -353,6 +363,23 @@ components:
         firstName:
           type: string
         lastName:
+          type: string
+        email:
+          type: string
+        region:
+          $ref: '#/components/schemas/Region'
+      xml:
+        name: User
+    UserToCreate:
+      type: object
+      properties:
+        username:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        password:
           type: string
         email:
           type: string
