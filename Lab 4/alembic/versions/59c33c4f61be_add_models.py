@@ -1,8 +1,8 @@
 """add models
 
-Revision ID: bb77ceb53097
+Revision ID: 59c33c4f61be
 Revises: 
-Create Date: 2021-10-23 15:37:41.102107
+Create Date: 2021-10-23 18:18:41.824421
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'bb77ceb53097'
+revision = '59c33c4f61be'
 down_revision = None
 branch_labels = None
 depends_on = None
