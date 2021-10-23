@@ -7,8 +7,7 @@ from sqlalchemy.schema import ForeignKey
 engine = create_engine('mysql+pymysql://root:password@localhost:3306/ap_lab6')
 SessionFactory = sessionmaker(bind=engine)
 Session = scoped_session(SessionFactory)
-metadata = MetaData(engine)
-BaseModel = declarative_base(metadata)
+BaseModel = declarative_base()
 
 
 class User(BaseModel):
@@ -59,6 +58,3 @@ class Advertisement(BaseModel):
 
     def __str__(self):
         return f"Advertisement: {self.text} date of publishing: {self.date_of_publishing}, status: {self.status}, region: {self.region_id}, category: {self.category_id}, user: {self.user_id} "
-
-
-BaseModel.metadata.create_all(engine)
