@@ -41,10 +41,12 @@ paths:
                 $ref: '#/components/schemas/Advertisement'
       security:
       - basicAuth: []
+
+  /advertisements:
     get:
       tags:
       - advertisement
-      summary: Find Advertisements
+      summary: Find all Advertisements
       operationId: findAdvertisements
       responses:
         200:
@@ -56,33 +58,7 @@ paths:
                 items:
                   $ref: '#/components/schemas/Advertisement'
 
-
-  /advertisement/byRegion:
-    post:
-      tags:
-      - advertisement
-      summary: Add a new advertisement to the service by region
-      description: This can only be done by the logged in user.
-      operationId: addAdvertisementByRegion
-      requestBody:
-        description: Advertisement object that needs to be added to the service
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Advertisement'
-        required: true
-      responses:
-        200:
-          description: "successful operation. User is registered"
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Advertisement'
-        405:
-          description: Invalid input
-          content: {}
-      security:
-      - basicAuth: []
+  /advertisement/{regionId}:
     get:
       tags:
       - advertisement
@@ -91,9 +67,9 @@ paths:
         and can only be done by the logged in user.
       operationId: findAdvertisementsByRegion
       parameters:
-      - name: region
-        in: query
-        description: Region values that need to be considered for filter
+      - name: regionId
+        in: path
+        description: Region id
         required: true
         schema:
           type: string
@@ -110,7 +86,8 @@ paths:
           description: Invalid input
           content: {}
       security:
-      - basicAuth: [] 
+      - basicAuth: []
+
   /advertisement/{addId}:
     delete:
       tags:
@@ -156,7 +133,7 @@ paths:
         required: true
       responses:
         400:
-          description: Invalid advertisement ID 
+          description: Invalid advertisement
           content: {}
         404:
           description: Advertisement not found
@@ -185,7 +162,7 @@ paths:
                 $ref: '#/components/schemas/UserToCreate'
         400:
           description: "User with such username already exists"
-      
+
   /auth/login:
     post:
       tags:
@@ -207,10 +184,10 @@ paths:
           type: string
       responses:
         200:
-          description: "successful operation." 
+          description: "successful operation."
         401:
           $ref: '#/components/responses/InvalidCredentialsError'
-  
+
   /auth/logout:
     post:
       tags:
@@ -244,9 +221,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserToGet'
-        400:
-          description: Invalid username supplied
-          content: {}
         404:
           description: User not found
           content: {}
@@ -384,7 +358,8 @@ components:
         email:
           type: string
         region:
-          $ref: '#/components/schemas/Region'
+          type: integer
+          format: int64
       xml:
         name: User
   securitySchemes:

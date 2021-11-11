@@ -1,4 +1,4 @@
-from models import Session, User, Region, Category, Advertisement
+from db.models import Session, User, Region, Category, Advertisement
 from datetime import date
 
 session = Session()

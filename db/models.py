@@ -4,7 +4,9 @@ from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.orm.scoping import scoped_session
 from sqlalchemy.schema import ForeignKey
 
-engine = create_engine('mysql+pymysql://root:password@localhost:3306/ap_lab6')
+from config.config import conn_string
+
+engine = create_engine(conn_string)
 SessionFactory = sessionmaker(bind=engine)
 Session = scoped_session(SessionFactory)
 BaseModel = declarative_base()
@@ -47,7 +49,7 @@ class Region(BaseModel):
 
 
 class Advertisement(BaseModel):
-    __tablename__ = "Advertisement"
+    __tablename__ = "advertisement"
     id = Column(Integer, primary_key=True)
     text = Column(String(45), nullable=False)
     date_of_publishing = Column(DATETIME)

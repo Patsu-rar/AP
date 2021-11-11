@@ -1,6 +1,5 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 
 from alembic import context
@@ -22,7 +21,7 @@ import sys
 current_path = os.path.dirname(os.path.abspath(__file__))
 ROOT_PATH = os.path.join(current_path, '..')
 sys.path.append(ROOT_PATH)
-from models import *
+from db.models import *
 target_metadata = BaseModel.metadata
 
 # other values from the config, defined by the needs of env.py,
