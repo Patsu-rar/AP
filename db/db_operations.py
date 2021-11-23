@@ -1,4 +1,5 @@
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import or_
 
 from db.models import User, Advertisement, Region, Category
 from db.mysql import MySQL
@@ -60,7 +61,9 @@ def update_advertisement(id, **values):
 
 def get_all_advertisements():
     try:
-        res = mysql.select(Advertisement)
+        tbl_obj = Advertisement.__table__
+        clause = tbl_obj.columns.region_id == None
+        res = mysql.select(Advertisement, where=clause)
         return 200, res
     except SQLAlchemyError as e:
         return 400, e
@@ -70,6 +73,17 @@ def get_all_advertisements_by_region(id):
     try:
         clause = Advertisement.__table__.columns.region_id == id
         return 200, mysql.select(Advertisement, where=clause)
+    except SQLAlchemyError as e:
+        return 400, e
+
+
+def get_all_ads_for_user(user_id):
+    try:
+        region_id = get_user_region(user_id)
+        tbl_obj = Advertisement.__table__
+        clause = or_(tbl_obj.columns.region_id == None, tbl_obj.columns.region_id == region_id)
+        res = mysql.select(Advertisement, where=clause)
+        return 200, res
     except SQLAlchemyError as e:
         return 400, e
 
@@ -86,7 +100,6 @@ def get_region(id):
     try:
         clause = Region.__table__.columns.id == id
         response = mysql.select(Region, where=clause)[0]
-        print(response)
         return response
     except SQLAlchemyError as e:
         return 400, e
@@ -95,7 +108,7 @@ def get_region(id):
 def delete_advertisement_by_id(id):
     try:
         mysql.delete(Advertisement, id)
-        return 200
+        return 200, "Deleted"
     except SQLAlchemyError as e:
         return 400, str(e)
 
@@ -117,3 +130,8 @@ def get_all_id(table_model):
 def get_all_usernames():
     table_obj = User.__table__
     return [res[0] for res in mysql.query(table_obj.columns.username).all()]
+
+
+def get_user_region(user_id):
+    table_obj = User.__table__
+    return mysql.query(table_obj.columns.region_id).where(table_obj.columns.id == user_id).scalar()
