@@ -34,7 +34,7 @@ def upgrade():
     sa.Column('first_name', sa.String(length=45), nullable=True),
     sa.Column('last_name', sa.String(length=45), nullable=True),
     sa.Column('email', sa.String(length=45), nullable=True),
-    sa.Column('password', sa.String(length=45), nullable=True),
+    sa.Column('password', sa.String(length=100), nullable=True),
     sa.Column('region_id', sa.Integer(), nullable=True),
     sa.ForeignKeyConstraint(['region_id'], ['region.id'], ),
     sa.PrimaryKeyConstraint('id')

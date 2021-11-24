@@ -19,7 +19,7 @@ class User(BaseModel):
     first_name = Column(String(45))
     last_name = Column(String(45))
     email = Column(String(45))
-    password = Column(String(45))
+    password = Column(String(100))
     region_id = Column(Integer, ForeignKey('region.id'))
     advertisements = relationship("Advertisement", backref="user")
 
