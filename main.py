@@ -1,13 +1,25 @@
 from datetime import datetime
 
-from flask import Flask, jsonify, abort, request, make_response
+from flask import Flask, jsonify, request
 from flask_bcrypt import Bcrypt
+from flask_httpauth import HTTPBasicAuth
 
 from db.db_operations import *
+from db.models import Session
 from validation import check_user, check_advertisement
 
 app = Flask(__name__)
 bc = Bcrypt(app)
+
+auth = HTTPBasicAuth()
+
+
+@auth.verify_password
+def verify_password(username, password):
+    u = Session.query(User).filter_by(username=username).first()
+    if not u or not bc.check_password_hash(u.password, password):
+        return False
+    return True
 
 
 @app.route('/api/v1/hello-world/17')
@@ -24,12 +36,18 @@ def get_advertisements():
 
 
 @app.route('/api/v1/advertisement/byRegion/<int:id>', methods=['GET'])
+@auth.login_required()
 def get_advertisements_by_region_id(id):
     if id not in get_all_id(Region):
         return {"message": "Region can not be found"}, 404
     code, response = get_all_advertisements_by_region(id)
     if code != 200:
         return {"message": str(response)}, code
+
+    u = Session.query(User).filter_by(username=auth.current_user()).first()
+    if u.region_id != id:
+        return {"message": "Forbidden operation"}, 403
+
     return jsonify(response)
 
 
@@ -51,28 +69,40 @@ def register_new_user():
     return jsonify(user), response
 
 
-@app.route('/api/v1/advertisement/<int:id>', methods=['PUT'])
-def change_advertisement(id):
+@app.route('/api/v1/advertisement/<int:add_id>', methods=['PUT'])
+@auth.login_required()
+def change_advertisement(add_id):
     if not request.json:
         return {"message": "Incorrect body"}, 400
-    if id not in get_all_id(Advertisement):
-        abort(404)
+    if add_id not in get_all_id(Advertisement):
+        return {"message": "Missing advertisement"}, 404
     if not check_advertisement(Advertisement, request):
         return {"message": "Incorrect body"}, 400
 
-    code, response = update_advertisement(id, **request.json)
+    u = Session.query(User).filter_by(username=auth.current_user()).first()
+    adds = Session.query(Advertisement.user_id).filter_by(id=add_id).first()
+    if u.id != adds[0]:
+        return {"message": "Forbidden operation"}, 403
+
+    code, response = update_advertisement(add_id, **request.json)
     if code == 200:
         return {"message": str(response)}, code
     return jsonify(response[1]), response[0]
 
 
 @app.route('/api/v1/advertisement', methods=['POST'])
+@auth.login_required()
 def add_new_advertisement():
     if not request.json:
         return {"message": "Incorrect body"}, 400
     if not check_advertisement(Advertisement, request):
         return {"message": "Incorrect body"}, 400
 
+    u = Session.query(User).filter_by(username=auth.current_user()).first()
+    if u.id != request.json["user_id"]:
+        return {"message": "Forbidden operation"}, 403
+
+    print(auth.current_user())
     advertisement = {col: request.json.get(col, None) for col in Advertisement.__table__.columns.keys()[1:]}
     advertisement["date_of_publishing"] = datetime.now()
     response = create_advertisement(**advertisement)
@@ -81,13 +111,20 @@ def add_new_advertisement():
     return jsonify(advertisement), response
 
 
-@app.route('/api/v1/advertisement/<int:id>', methods=['DELETE'])
-def delete_advertisement(id):
-    if not isinstance(id, int):
+@app.route('/api/v1/advertisement/<int:add_id>', methods=['DELETE'])
+@auth.login_required()
+def delete_advertisement(add_id):
+    if not isinstance(add_id, int):
         return {"message": "Incorrect body"}, 400
-    if id not in get_all_id(Advertisement):
+    if add_id not in get_all_id(Advertisement):
         return {"message": "Advertisement can not be found"}, 404
-    response = delete_advertisement_by_id(id)
+
+    u = Session.query(User).filter_by(username=auth.current_user()).first()
+    adds = Session.query(Advertisement.user_id).filter_by(id=add_id).first()
+    if u.id != adds[0]:
+        return {"message": "Forbidden operation"}, 403
+
+    response = delete_advertisement_by_id(add_id)
     if isinstance(response, tuple):
         return response[1], response[0]
     return response
@@ -106,22 +143,29 @@ def get_user(user_name):
     return jsonify(response)
 
 
-@app.route('/api/v1/user/<user_name>', methods=['PUT'])
-def change_user(user_name):
-    if user_name not in get_all_usernames():
+@app.route('/api/v1/user/change_username', methods=['PUT'])
+@auth.login_required()
+def change_user():
+    print(auth.username())
+    if auth.username() not in get_all_usernames():
         return {"message": "User can not be found"}, 404
-    if not request.json or not check_user( User, request):
+    if not request.json or not check_user(User, request):
         return {"message": "Incorrect body"}, 400
     updated_columns = request.json
-    response = update_user(user_name, **updated_columns)
-    del response["password"]
+    response = update_user(auth.username(), **updated_columns)
+    del response[1]["password"]
     return jsonify(response[1]), response[0]
 
 
 @app.route('/api/v1/user/advertisements/<int:id>', methods=['GET'])
+@auth.login_required()
 def get_user_advertisements(id):
     if id not in get_all_id(User):
         return {"message": "User can not be found"}, 404
+
+    u = Session.query(User).filter_by(username=auth.current_user()).first()
+    if u.id != id:
+        return {"message": "Forbidden operation"}, 403
 
     code, response = get_all_ads_for_user(id)
     if code != 200:

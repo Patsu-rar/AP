@@ -1,5 +1,4 @@
-user: user
-password: password
-host: host
-port: port
-db_name: db_name
+user: root
+password: 5101
+server: 127.0.0.1:3306
+db_name: my_db

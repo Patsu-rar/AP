@@ -3,8 +3,8 @@ from sqlalchemy.orm import sessionmaker, Query, Session
 
 
 class MySQL:
-    def __init__(self, user, password, host, port, db_name):
-        conn_string = f"mysql+pymysql://{user}:{password}@{host}:{port}/{db_name}"
+    def __init__(self, user, password, server, db_name):
+        conn_string = f"mysql+pymysql://{user}:{password}@{server}/{db_name}"
         self.__engine = create_engine(conn_string)
         self.__engine.connect()
         self.__db_name = db_name
