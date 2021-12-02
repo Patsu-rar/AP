@@ -1,4 +1,4 @@
 user: root
-password: 5101
-server: 127.0.0.1:3306
-db_name: my_db
+password: root
+server: localhost
+db_name: api_db

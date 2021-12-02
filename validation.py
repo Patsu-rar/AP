@@ -1,4 +1,3 @@
-import datetime
 from validators import email
 
 

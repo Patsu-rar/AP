@@ -3,9 +3,14 @@ from sqlalchemy import or_
 
 from db.models import User, Advertisement, Region, Category
 from db.mysql import MySQL
-from config.config import conf
+# from config.config import conf
 
-mysql = MySQL(**conf)
+mysql = MySQL(
+    user="root",
+    password="root",
+    server="localhost",
+    db_name="api_db"
+)
 
 
 def create_user(**values):
@@ -19,14 +24,6 @@ def create_user(**values):
 def create_advertisement(**values):
     try:
         mysql.insert(Advertisement, **values)
-        return 201
-    except SQLAlchemyError as e:
-        return 400, e
-
-
-def create_region(**values):
-    try:
-        mysql.insert(Region, **values)
         return 201
     except SQLAlchemyError as e:
         return 400, e
