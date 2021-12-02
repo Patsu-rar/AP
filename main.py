@@ -7,6 +7,7 @@ from flask_httpauth import HTTPBasicAuth
 from db.db_operations import *
 from db.models import Session
 from validation import check_user, check_advertisement
+from passlib.hash import bcrypt
 
 app = Flask(__name__)
 bc = Bcrypt(app)
@@ -17,7 +18,7 @@ auth = HTTPBasicAuth()
 @auth.verify_password
 def verify_password(username, password):
     u = Session.query(User).filter_by(username=username).first()
-    if not u or not bc.check_password_hash(u.password, password):
+    if not u or not bcrypt.verify(password, u.password):
         return False
     return True
 
@@ -66,7 +67,7 @@ def register_new_user():
     del user["password"]
     if isinstance(response, tuple):
         return response[1], response[0]
-    return jsonify(user), response
+    return jsonify(user), 200
 
 
 @app.route('/api/v1/advertisement/<int:add_id>', methods=['PUT'])
@@ -102,20 +103,17 @@ def add_new_advertisement():
     if u.id != request.json["user_id"]:
         return {"message": "Forbidden operation"}, 403
 
-    print(auth.current_user())
     advertisement = {col: request.json.get(col, None) for col in Advertisement.__table__.columns.keys()[1:]}
     advertisement["date_of_publishing"] = datetime.now()
     response = create_advertisement(**advertisement)
     if isinstance(response, tuple):
         return response[1], response[0]
-    return jsonify(advertisement), response
+    return jsonify(advertisement), 200
 
 
 @app.route('/api/v1/advertisement/<int:add_id>', methods=['DELETE'])
 @auth.login_required()
 def delete_advertisement(add_id):
-    if not isinstance(add_id, int):
-        return {"message": "Incorrect body"}, 400
     if add_id not in get_all_id(Advertisement):
         return {"message": "Advertisement can not be found"}, 404
 
@@ -141,20 +139,6 @@ def get_user(user_name):
     response["region"] = get_region(response["region_id"])
     del response["region_id"]
     return jsonify(response)
-
-
-@app.route('/api/v1/user/change_username', methods=['PUT'])
-@auth.login_required()
-def change_user():
-    print(auth.username())
-    if auth.username() not in get_all_usernames():
-        return {"message": "User can not be found"}, 404
-    if not request.json or not check_user(User, request):
-        return {"message": "Incorrect body"}, 400
-    updated_columns = request.json
-    response = update_user(auth.username(), **updated_columns)
-    del response[1]["password"]
-    return jsonify(response[1]), response[0]
 
 
 @app.route('/api/v1/user/advertisements/<int:id>', methods=['GET'])

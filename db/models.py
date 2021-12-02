@@ -4,9 +4,9 @@ from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.orm.scoping import scoped_session
 from sqlalchemy.schema import ForeignKey
 
-from config.config import conn_string
+# from config.config import conn_string
 
-engine = create_engine(conn_string)
+engine = create_engine("mysql+pymysql://root:root@localhost/api_db")
 SessionFactory = sessionmaker(bind=engine)
 Session = scoped_session(SessionFactory)
 BaseModel = declarative_base()
